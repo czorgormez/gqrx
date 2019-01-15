@@ -280,3 +280,5 @@ OTHER_FILES += \
     README.md \
     COPYING \
     news.txt
+
+LIBS += -lSoapySDR
