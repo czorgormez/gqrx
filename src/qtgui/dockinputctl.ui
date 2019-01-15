@@ -60,6 +60,9 @@
       </item>
       <item>
        <widget class="QDoubleSpinBox" name="lnbSpinBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -95,6 +98,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QCheckBox" name="agcButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle hardware-based automatic gain control.&lt;/p&gt;&lt;p&gt;This feature requires hardware that supports it. It is known to work with RTL-SDR devices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
@@ -109,6 +115,9 @@
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
        <widget class="QCheckBox" name="iqSwapButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Swap the the I/Q channels. This can be useful with audio-based input or when dealing with inverted IF.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
@@ -122,6 +131,9 @@
       </item>
       <item row="0" column="1">
        <widget class="QCheckBox" name="ignoreButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ignore hardware limits such as frequency range. This allows experimenting with out-of-spec settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
@@ -132,6 +144,9 @@
       </item>
       <item row="1" column="0">
        <widget class="QCheckBox" name="dcCancelButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="toolTip">
          <string>Enable automatic DC removal</string>
         </property>
@@ -142,6 +157,9 @@
       </item>
       <item row="1" column="1">
        <widget class="QCheckBox" name="iqBalanceButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="toolTip">
          <string>Enable automatic I/Q balance (requires gr-iqbal component)</string>
         </property>
@@ -166,6 +184,9 @@
       </item>
       <item row="0" column="1">
        <widget class="QDoubleSpinBox" name="freqCorrSpinBox">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
           <horstretch>0</horstretch>

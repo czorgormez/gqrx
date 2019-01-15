@@ -3,7 +3,7 @@
  <class>DockRDS</class>
  <widget class="QDockWidget" name="DockRDS">
   <property name="enabled">
-   <bool>true</bool>
+   <bool>false</bool>
   </property>
   <property name="geometry">
    <rect>
@@ -59,7 +59,7 @@
          <x>0</x>
          <y>0</y>
          <width>205</width>
-         <height>201</height>
+         <height>203</height>
         </rect>
        </property>
        <layout class="QFormLayout" name="formLayout">

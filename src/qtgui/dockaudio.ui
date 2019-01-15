@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>DockAudio</class>
  <widget class="QDockWidget" name="DockAudio">
+  <property name="enabled">
+   <bool>false</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -269,7 +272,7 @@
       <item>
        <widget class="QPushButton" name="audioConfButton">
         <property name="enabled">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
