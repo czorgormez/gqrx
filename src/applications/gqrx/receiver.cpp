@@ -50,6 +50,9 @@
 #include <gnuradio/audio/sink.h>
 #endif
 
+#include <SoapySDR/Device.hpp>
+#include <SoapySDR/Formats.hpp>
+#include <SoapySDR/Errors.hpp>
 
 /**
  * @brief Public contructor.
@@ -76,94 +79,122 @@ receiver::receiver(const std::string input_device,
       d_demod(RX_DEMOD_OFF)
 {
 
-    tb = gr::make_top_block("gqrx");
-
-    if (input_device.empty())
+    // https://github.com/skylarkwireless/sklk-soapyiris/blob/master/tests/IrisFullDuplex.cpp
+    device = SoapySDR::Device::make("driver=remote, cacheCalibrations=1");
+    if (device == nullptr)
     {
-        src = osmosdr::source::make("file="+get_random_file()+",freq=428e6,rate=96000,repeat=true,throttle=true");
-    }
-    else
-    {
-        input_devstr = input_device;
-        src = osmosdr::source::make(input_device);
+        std::cerr << "No device!" << std::endl;
     }
 
-    // input decimator
-    if (d_decim >= 2)
-    {
-        try
-        {
-            input_decim = make_fir_decim_cc(d_decim);
-        }
-        catch (std::range_error &e)
-        {
-            std::cout << "Error creating input decimator " << d_decim
-                      << ": " << e.what() << std::endl
-                      << "Using decimation 1." << std::endl;
-            d_decim = 1;
-        }
+    auto rate = 80e6;
+    std::cout << "setting samples rates to " << rate/1e6 << " Msps..." << std::endl;
+    device->setSampleRate(SOAPY_SDR_RX, 0, rate);
 
-        d_quad_rate = d_input_rate / (double)d_decim;
-    }
-    else
-    {
-        d_quad_rate = d_input_rate;
-    }
+    device->setAntenna(SOAPY_SDR_RX, 0, "LNAH");
+    device->setFrequency(SOAPY_SDR_RX, 0, 2440e6);
+    device->setSampleRate(SOAPY_SDR_RX, 0, rate);
+    device->setBandwidth(SOAPY_SDR_RX, 0, rate);
+    device->setDCOffsetMode(SOAPY_SDR_RX, 0, 1);
+
+    device->setGain(SOAPY_SDR_RX, 0, "LNA", 30);
+    device->setGain(SOAPY_SDR_RX, 0, "TIA", 0);
+    device->setGain(SOAPY_SDR_RX, 0, "PGA", 6);
+
+    std::vector<size_t> channels = {0};
+    rx_stream = device->setupStream(SOAPY_SDR_RX, SOAPY_SDR_CS16, channels,
+                                         SoapySDR::KwargsFromString("remote:mtu=2120, remote:prot=tcp"));
+
+//    tb = gr::make_top_block("gqrx");
+
+//    if (input_device.empty())
+//    {
+//        src = osmosdr::source::make("file="+get_random_file()+",freq=428e6,rate=96000,repeat=true,throttle=true");
+//    }
+//    else
+//    {
+//        input_devstr = input_device;
+//        src = osmosdr::source::make(input_device);
+//    }
+
+//    // input decimator
+//    if (d_decim >= 2)
+//    {
+//        try
+//        {
+//            input_decim = make_fir_decim_cc(d_decim);
+//        }
+//        catch (std::range_error &e)
+//        {
+//            std::cout << "Error creating input decimator " << d_decim
+//                      << ": " << e.what() << std::endl
+//                      << "Using decimation 1." << std::endl;
+//            d_decim = 1;
+//        }
+
+//        d_quad_rate = d_input_rate / (double)d_decim;
+//    }
+//    else
+//    {
+//        d_quad_rate = d_input_rate;
+//    }
 
 
-    // create I/Q sink and close it
-    iq_sink = gr::blocks::file_sink::make(sizeof(gr_complex), get_null_file().c_str(), true);
-    iq_sink->set_unbuffered(true);
-    iq_sink->close();
+//    // create I/Q sink and close it
+//    iq_sink = gr::blocks::file_sink::make(sizeof(gr_complex), get_null_file().c_str(), true);
+//    iq_sink->set_unbuffered(true);
+//    iq_sink->close();
 
-    rx = make_nbrx(d_quad_rate, d_audio_rate);
-    lo = gr::analog::sig_source_c::make(d_quad_rate, gr::analog::GR_SIN_WAVE,
-                                        0.0, 1.0);
-    mixer = gr::blocks::multiply_cc::make();
+//    rx = make_nbrx(d_quad_rate, d_audio_rate);
+//    lo = gr::analog::sig_source_c::make(d_quad_rate, gr::analog::GR_SIN_WAVE,
+//                                        0.0, 1.0);
+//    mixer = gr::blocks::multiply_cc::make();
 
-    iq_swap = make_iq_swap_cc(false);
-    dc_corr = make_dc_corr_cc(d_quad_rate, 1.0);
-    iq_fft = make_rx_fft_c(8192u, gr::filter::firdes::WIN_HANN);
+//    iq_swap = make_iq_swap_cc(false);
+//    dc_corr = make_dc_corr_cc(d_quad_rate, 1.0);
+//    iq_fft = make_rx_fft_c(8192u, gr::filter::firdes::WIN_HANN);
 
-    audio_fft = make_rx_fft_f(8192u, gr::filter::firdes::WIN_HANN);
-    audio_gain0 = gr::blocks::multiply_const_ff::make(0.1);
-    audio_gain1 = gr::blocks::multiply_const_ff::make(0.1);
+//    audio_fft = make_rx_fft_f(8192u, gr::filter::firdes::WIN_HANN);
+//    audio_gain0 = gr::blocks::multiply_const_ff::make(0.1);
+//    audio_gain1 = gr::blocks::multiply_const_ff::make(0.1);
 
-    wav_sink = gr::blocks::wavfile_sink::make(get_null_file().c_str(), 2,
-                                              (unsigned int) d_audio_rate,
-                                              16);
+//    wav_sink = gr::blocks::wavfile_sink::make(get_null_file().c_str(), 2,
+//                                              (unsigned int) d_audio_rate,
+//                                              16);
 
-    audio_udp_sink = make_udp_sink_f();
+//    audio_udp_sink = make_udp_sink_f();
 
-#ifdef WITH_PULSEAUDIO
-    audio_snk = make_pa_sink(audio_device, d_audio_rate, "GQRX", "Audio output");
-#elif WITH_PORTAUDIO
-    audio_snk = make_portaudio_sink(audio_device, d_audio_rate, "GQRX", "Audio output");
-#else
-    audio_snk = gr::audio::sink::make(d_audio_rate, audio_device, true);
-#endif
+//#ifdef WITH_PULSEAUDIO
+//    audio_snk = make_pa_sink(audio_device, d_audio_rate, "GQRX", "Audio output");
+//#elif WITH_PORTAUDIO
+//    audio_snk = make_portaudio_sink(audio_device, d_audio_rate, "GQRX", "Audio output");
+//#else
+//    audio_snk = gr::audio::sink::make(d_audio_rate, audio_device, true);
+//#endif
 
-    output_devstr = audio_device;
+//    output_devstr = audio_device;
 
-    /* wav sink and source is created when rec/play is started */
-    audio_null_sink0 = gr::blocks::null_sink::make(sizeof(float));
-    audio_null_sink1 = gr::blocks::null_sink::make(sizeof(float));
-    sniffer = make_sniffer_f();
-    /* sniffer_rr is created at each activation. */
+//    /* wav sink and source is created when rec/play is started */
+//    audio_null_sink0 = gr::blocks::null_sink::make(sizeof(float));
+//    audio_null_sink1 = gr::blocks::null_sink::make(sizeof(float));
+//    sniffer = make_sniffer_f();
+//    /* sniffer_rr is created at each activation. */
 
-    set_demod(RX_DEMOD_NFM);
+//    set_demod(RX_DEMOD_NFM);
 
-#ifndef QT_NO_DEBUG_OUTPUT
-    gr::prefs pref;
-    std::cout << "Using audio backend: "
-              << pref.get_string("audio", "audio_module", "N/A")
-              << std::endl;
-#endif
+//#ifndef QT_NO_DEBUG_OUTPUT
+//    gr::prefs pref;
+//    std::cout << "Using audio backend: "
+//              << pref.get_string("audio", "audio_module", "N/A")
+//              << std::endl;
+//#endif
 }
 
 receiver::~receiver()
 {
-    tb->stop();
+//    tb->stop();
+    device->deactivateStream(rx_stream);
+    device->closeStream(rx_stream);
+    SoapySDR::Device::unmake(device);
 }
 
 
@@ -172,7 +203,9 @@ void receiver::start()
 {
     if (!d_running)
     {
-        tb->start();
+        device->activateStream(rx_stream);
+
+//        tb->start();
         d_running = true;
     }
 }
@@ -182,8 +215,9 @@ void receiver::stop()
 {
     if (d_running)
     {
-        tb->stop();
-        tb->wait(); // If the graph is needed to run again, wait() must be called after stop
+//        tb->stop();
+        device->deactivateStream(rx_stream);
+//        tb->wait(); // If the graph is needed to run again, wait() must be called after stop
         d_running = false;
     }
 }
@@ -299,7 +333,8 @@ void receiver::set_output_device(const std::string device)
 /** Get a list of available antenna connectors. */
 std::vector<std::string> receiver::get_antennas(void) const
 {
-    return src->get_antennas();
+    return device->listAntennas(SOAPY_SDR_RX, 0);
+//    return src->get_antennas();
 }
 
 /** Select antenna conenctor. */
@@ -307,7 +342,8 @@ void receiver::set_antenna(const std::string &antenna)
 {
     if (!antenna.empty())
     {
-        src->set_antenna(antenna);
+        device->setAntenna(SOAPY_SDR_RX, 0, antenna);
+//        src->set_antenna(antenna);
     }
 }
 
@@ -432,13 +468,14 @@ unsigned int receiver::set_input_decim(unsigned int decim)
  */
 double receiver::set_analog_bandwidth(double bw)
 {
-    return src->set_bandwidth(bw);
+    device->setBandwidth(SOAPY_SDR_RX, 0, bw);
+    return bw;
 }
 
 /** Get current analog bandwidth. */
 double receiver::get_analog_bandwidth(void) const
 {
-    return src->get_bandwidth();
+    return device->getBandwidth(SOAPY_SDR_RX, 0);
 }
 
 /** Set I/Q reversed. */
@@ -523,8 +560,7 @@ receiver::status receiver::set_rf_freq(double freq_hz)
 {
     d_rf_freq = freq_hz;
 
-    src->set_center_freq(d_rf_freq);
-    // FIXME: read back frequency?
+    device->setFrequency(SOAPY_SDR_RX, 0, freq_hz);
 
     return STATUS_OK;
 }
@@ -536,7 +572,7 @@ receiver::status receiver::set_rf_freq(double freq_hz)
  */
 double receiver::get_rf_freq(void)
 {
-    d_rf_freq = src->get_center_freq();
+    d_rf_freq = device->getFrequency(SOAPY_SDR_RX, 0);
 
     return d_rf_freq;
 }
@@ -550,21 +586,17 @@ double receiver::get_rf_freq(void)
  */
 receiver::status receiver::get_rf_range(double *start, double *stop, double *step)
 {
-    osmosdr::freq_range_t range;
 
-    range = src->get_freq_range();
+    auto range = device->getFrequencyRange(SOAPY_SDR_RX, 0)[0];
 
-    // currently range is empty for all but E4000
-    if (!range.empty())
+
+    if (range.minimum() < range.maximum())
     {
-        if (range.start() < range.stop())
-        {
-            *start = range.start();
-            *stop  = range.stop();
-            *step  = range.step();  /** FIXME: got 0 for rtl-sdr? **/
+        *start = range.minimum();
+        *stop  = range.maximum();
+        *step  = range.step();  /** FIXME: got 0 for rtl-sdr? **/
 
-            return STATUS_OK;
-        }
+        return STATUS_OK;
     }
 
     return STATUS_ERROR;
@@ -573,7 +605,7 @@ receiver::status receiver::get_rf_range(double *start, double *stop, double *ste
 /** Get the names of available gain stages. */
 std::vector<std::string> receiver::get_gain_names()
 {
-    return src->get_gain_names();
+    return device->listGains(SOAPY_SDR_RX, 0);
 }
 
 /**
@@ -588,11 +620,10 @@ std::vector<std::string> receiver::get_gain_names()
 receiver::status receiver::get_gain_range(std::string &name, double *start,
                                           double *stop, double *step) const
 {
-    osmosdr::gain_range_t range;
 
-    range = src->get_gain_range(name);
-    *start = range.start();
-    *stop  = range.stop();
+    auto range = device->getGainRange(SOAPY_SDR_RX, 0, name);
+    *start = range.minimum();
+    *stop  = range.maximum();
     *step  = range.step();
 
     return STATUS_OK;
@@ -600,14 +631,13 @@ receiver::status receiver::get_gain_range(std::string &name, double *start,
 
 receiver::status receiver::set_gain(std::string name, double value)
 {
-    src->set_gain(value, name);
-
+    device->setGain(SOAPY_SDR_RX, 0, name, value);
     return STATUS_OK;
 }
 
 double receiver::get_gain(std::string name) const
 {
-    return src->get_gain(name);
+    return device->getGain(SOAPY_SDR_RX, 0, name);
 }
 
 /**
@@ -618,7 +648,7 @@ double receiver::get_gain(std::string name) const
  */
 receiver::status receiver::set_auto_gain(bool automatic)
 {
-    src->set_gain_mode(automatic);
+    device->setGainMode(SOAPY_SDR_RX, 0, automatic);
 
     return STATUS_OK;
 }
@@ -639,8 +669,8 @@ receiver::status receiver::set_auto_gain(bool automatic)
  */
 receiver::status receiver::set_filter_offset(double offset_hz)
 {
-    d_filter_offset = offset_hz;
-    lo->set_frequency(-d_filter_offset + d_cw_offset);
+//    d_filter_offset = offset_hz;
+//    lo->set_frequency(-d_filter_offset + d_cw_offset);
 
     return STATUS_OK;
 }
@@ -672,36 +702,36 @@ double receiver::get_cw_offset(void) const
 
 receiver::status receiver::set_filter(double low, double high, filter_shape shape)
 {
-    double trans_width;
+//    double trans_width;
 
-    if ((low >= high) || (std::abs(high-low) < RX_FILTER_MIN_WIDTH))
-        return STATUS_ERROR;
+//    if ((low >= high) || (std::abs(high-low) < RX_FILTER_MIN_WIDTH))
+//        return STATUS_ERROR;
 
-    switch (shape) {
+//    switch (shape) {
 
-    case FILTER_SHAPE_SOFT:
-        trans_width = std::abs(high - low) * 0.5;
-        break;
+//    case FILTER_SHAPE_SOFT:
+//        trans_width = std::abs(high - low) * 0.5;
+//        break;
 
-    case FILTER_SHAPE_SHARP:
-        trans_width = std::abs(high - low) * 0.1;
-        break;
+//    case FILTER_SHAPE_SHARP:
+//        trans_width = std::abs(high - low) * 0.1;
+//        break;
 
-    case FILTER_SHAPE_NORMAL:
-    default:
-        trans_width = std::abs(high - low) * 0.2;
-        break;
+//    case FILTER_SHAPE_NORMAL:
+//    default:
+//        trans_width = std::abs(high - low) * 0.2;
+//        break;
 
-    }
+//    }
 
-    rx->set_filter(low, high, trans_width);
+//    rx->set_filter(low, high, trans_width);
 
     return STATUS_OK;
 }
 
 receiver::status receiver::set_freq_corr(double ppm)
 {
-    src->set_freq_corr(ppm);
+//    src->set_freq_corr(ppm);
 
     return STATUS_OK;
 }
@@ -716,7 +746,8 @@ receiver::status receiver::set_freq_corr(double ppm)
  */
 float receiver::get_signal_pwr(bool dbfs) const
 {
-    return rx->get_signal_level(dbfs);
+//    return rx->get_signal_level(dbfs);
+    return 0;
 }
 
 /** Set new FFT size. */
@@ -739,7 +770,7 @@ void receiver::get_iq_fft_data(std::complex<float>* fftPoints, unsigned int &fft
 /** Get latest audio FFT data. */
 void receiver::get_audio_fft_data(std::complex<float>* fftPoints, unsigned int &fftsize)
 {
-    audio_fft->get_fft_data(fftPoints, fftsize);
+//    audio_fft->get_fft_data(fftPoints, fftsize);
 }
 
 receiver::status receiver::set_nb_on(int nbid, bool on)
@@ -940,15 +971,15 @@ receiver::status receiver::set_am_dcr(bool enabled)
 
 receiver::status receiver::set_af_gain(float gain_db)
 {
-    float k;
+//    float k;
 
-    /* convert dB to factor */
-    k = pow(10.0, gain_db / 20.0);
-    //std::cout << "G:" << gain_db << "dB / K:" << k << std::endl;
-    audio_gain0->set_k(k);
-    audio_gain1->set_k(k);
+//    /* convert dB to factor */
+//    k = pow(10.0, gain_db / 20.0);
+//    //std::cout << "G:" << gain_db << "dB / K:" << k << std::endl;
+//    audio_gain0->set_k(k);
+//    audio_gain1->set_k(k);
 
-    return STATUS_OK;
+//    return STATUS_OK;
 }
 
 
@@ -1407,7 +1438,7 @@ void receiver::stop_rds_decoder(void)
 
 bool receiver::is_rds_decoder_active(void) const
 {
-    return rx->is_rds_decoder_active();
+//    return rx->is_rds_decoder_active();
 }
 
 void receiver::reset_rds_parser(void)

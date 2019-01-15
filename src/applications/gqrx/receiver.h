@@ -47,6 +47,7 @@
 #include "dsp/resampler_xx.h"
 #include "interfaces/udp_sink_f.h"
 #include "receivers/receiver_base.h"
+#include <SoapySDR/Device.hpp>
 
 #ifdef WITH_PULSEAUDIO
 #include "pulseaudio/pa_sink.h"
@@ -220,6 +221,9 @@ public:
     bool        is_rds_decoder_active(void) const;
     void        reset_rds_parser(void);
 
+    SoapySDR::Device *device;
+    SoapySDR::Stream *rx_stream;
+
 private:
     void        connect_all(rx_chain type);
 
@@ -286,6 +290,7 @@ private:
 
     //! Get a path to a file containing all-zero bytes
     static std::string get_null_file(void);
+
 };
 
 #endif // RECEIVER_H

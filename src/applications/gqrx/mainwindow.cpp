@@ -419,31 +419,31 @@ bool MainWindow::loadConfig(const QString cfgfile, bool check_crash,
 
     qDebug() << "Configuration file:" << m_settings->fileName();
 
-    if (check_crash)
-    {
-        if (m_settings->value("crashed", false).toBool())
-        {
-            qDebug() << "Crash guard triggered!" << endl;
-            QMessageBox* askUserAboutConfig =
-                    new QMessageBox(QMessageBox::Warning, tr("Crash Detected!"),
-                                    tr("<p>Gqrx has detected problems with the current configuration. "
-                                       "Loading the configuration again could cause the application to crash.</p>"
-                                       "<p>Do you want to edit the settings?</p>"),
-                                    QMessageBox::Yes | QMessageBox::No);
-            askUserAboutConfig->setDefaultButton(QMessageBox::Yes);
-            askUserAboutConfig->setTextFormat(Qt::RichText);
-            askUserAboutConfig->exec();
-            if (askUserAboutConfig->result() == QMessageBox::Yes)
-                skip_loading_cfg = true;
+//    if (check_crash)
+//    {
+//        if (m_settings->value("crashed", false).toBool())
+//        {
+//            qDebug() << "Crash guard triggered!" << endl;
+//            QMessageBox* askUserAboutConfig =
+//                    new QMessageBox(QMessageBox::Warning, tr("Crash Detected!"),
+//                                    tr("<p>Gqrx has detected problems with the current configuration. "
+//                                       "Loading the configuration again could cause the application to crash.</p>"
+//                                       "<p>Do you want to edit the settings?</p>"),
+//                                    QMessageBox::Yes | QMessageBox::No);
+//            askUserAboutConfig->setDefaultButton(QMessageBox::Yes);
+//            askUserAboutConfig->setTextFormat(Qt::RichText);
+//            askUserAboutConfig->exec();
+//            if (askUserAboutConfig->result() == QMessageBox::Yes)
+//                skip_loading_cfg = true;
 
-            delete askUserAboutConfig;
-        }
-        else
-        {
-            m_settings->setValue("crashed", true); // clean exit will set this to FALSE
-            m_settings->sync();
-        }
-    }
+//            delete askUserAboutConfig;
+//        }
+//        else
+//        {
+//            m_settings->setValue("crashed", true); // clean exit will set this to FALSE
+//            m_settings->sync();
+//        }
+//    }
 
     if (skip_loading_cfg)
         return false;
@@ -468,7 +468,7 @@ bool MainWindow::loadConfig(const QString cfgfile, bool check_crash,
     if (!indev.isEmpty())
     {
         conf_ok = true;
-        rx->set_input_device(indev.toStdString());
+//        rx->set_input_device(indev.toStdString());
 
         // Update window title
         QRegExp regexp("'([a-zA-Z0-9 \\-\\_\\/\\.\\,\\(\\)]+)'");
@@ -504,7 +504,8 @@ bool MainWindow::loadConfig(const QString cfgfile, bool check_crash,
     int_val = m_settings->value("input/sample_rate", 0).toInt(&conv_ok);
     if (conv_ok && (int_val > 0))
     {
-        actual_rate = rx->set_input_rate(int_val);
+//        actual_rate = rx->set_input_rate(int_val);
+        actual_rate = int_val;
 
         if (actual_rate == 0)
         {
@@ -547,8 +548,8 @@ bool MainWindow::loadConfig(const QString cfgfile, bool check_crash,
                 qDebug() << "Quadrature rate:" << QString("%1").arg(actual_rate, 0, 'f', 6);
             }
         }
-        else
-            rx->set_input_decim(1);
+//        else
+//            rx->set_input_decim(1);
 
         // update various widgets that need a sample rate
         uiDockRxOpt->setFilterOffsetRange((qint64)(actual_rate));
@@ -852,17 +853,17 @@ void MainWindow::setAntenna(const QString antenna)
  */
 void MainWindow::setFilterOffset(qint64 freq_hz)
 {
-    rx->set_filter_offset((double) freq_hz);
-    ui->plotter->setFilterOffset(freq_hz);
+//    rx->set_filter_offset((double) freq_hz);
+//    ui->plotter->setFilterOffset(freq_hz);
 
-    updateFrequencyRange();
+//    updateFrequencyRange();
 
-    qint64 rx_freq = d_hw_freq + d_lnb_lo + freq_hz;
-    ui->freqCtrl->setFrequency(rx_freq);
+//    qint64 rx_freq = d_hw_freq + d_lnb_lo + freq_hz;
+//    ui->freqCtrl->setFrequency(rx_freq);
 
-    if (rx->is_rds_decoder_active()) {
-        rx->reset_rds_parser();
-    }
+//    if (rx->is_rds_decoder_active()) {
+//        rx->reset_rds_parser();
+//    }
 }
 
 /**
@@ -973,139 +974,139 @@ void MainWindow::selectDemod(QString strModulation)
  */
 void MainWindow::selectDemod(int mode_idx)
 {
-    double  cwofs = 0.0;
-    int     filter_preset = uiDockRxOpt->currentFilter();
-    int     flo=0, fhi=0, click_res=100;
-    bool    rds_enabled;
+//    double  cwofs = 0.0;
+//    int     filter_preset = uiDockRxOpt->currentFilter();
+//    int     flo=0, fhi=0, click_res=100;
+//    bool    rds_enabled;
 
-    // validate mode_idx
-    if (mode_idx < DockRxOpt::MODE_OFF || mode_idx >= DockRxOpt::MODE_LAST)
-    {
-        qDebug() << "Invalid mode index:" << mode_idx;
-        mode_idx = DockRxOpt::MODE_OFF;
-    }
-    qDebug() << "New mode index:" << mode_idx;
+//    // validate mode_idx
+//    if (mode_idx < DockRxOpt::MODE_OFF || mode_idx >= DockRxOpt::MODE_LAST)
+//    {
+//        qDebug() << "Invalid mode index:" << mode_idx;
+//        mode_idx = DockRxOpt::MODE_OFF;
+//    }
+//    qDebug() << "New mode index:" << mode_idx;
 
-    uiDockRxOpt->getFilterPreset(mode_idx, filter_preset, &flo, &fhi);
-    d_filter_shape = (receiver::filter_shape)uiDockRxOpt->currentFilterShape();
+//    uiDockRxOpt->getFilterPreset(mode_idx, filter_preset, &flo, &fhi);
+//    d_filter_shape = (receiver::filter_shape)uiDockRxOpt->currentFilterShape();
 
-    rds_enabled = rx->is_rds_decoder_active();
-    if (rds_enabled)
-        setRdsDecoder(false);
-    uiDockRDS->setDisabled();
+//    rds_enabled = rx->is_rds_decoder_active();
+//    if (rds_enabled)
+//        setRdsDecoder(false);
+//    uiDockRDS->setDisabled();
 
-    switch (mode_idx) {
+//    switch (mode_idx) {
 
-    case DockRxOpt::MODE_OFF:
-        /* Spectrum analyzer only */
-        if (rx->is_recording_audio())
-        {
-            stopAudioRec();
-            uiDockAudio->setAudioRecButtonState(false);
-        }
-        rx->set_demod(receiver::RX_DEMOD_OFF);
-        click_res = 1000;
-        break;
+//    case DockRxOpt::MODE_OFF:
+//        /* Spectrum analyzer only */
+//        if (rx->is_recording_audio())
+//        {
+//            stopAudioRec();
+//            uiDockAudio->setAudioRecButtonState(false);
+//        }
+//        rx->set_demod(receiver::RX_DEMOD_OFF);
+//        click_res = 1000;
+//        break;
 
-    case DockRxOpt::MODE_RAW:
-        /* Raw I/Q; max 96 ksps*/
-        rx->set_demod(receiver::RX_DEMOD_NONE);
-        ui->plotter->setDemodRanges(-40000, -200, 200, 40000, true);
-        uiDockAudio->setFftRange(0,24000);
-        click_res = 100;
-        break;
+//    case DockRxOpt::MODE_RAW:
+//        /* Raw I/Q; max 96 ksps*/
+//        rx->set_demod(receiver::RX_DEMOD_NONE);
+//        ui->plotter->setDemodRanges(-40000, -200, 200, 40000, true);
+//        uiDockAudio->setFftRange(0,24000);
+//        click_res = 100;
+//        break;
 
-    case DockRxOpt::MODE_AM:
-        rx->set_demod(receiver::RX_DEMOD_AM);
-        ui->plotter->setDemodRanges(-40000, -200, 200, 40000, true);
-        uiDockAudio->setFftRange(0,6000);
-        click_res = 100;
-        break;
+//    case DockRxOpt::MODE_AM:
+//        rx->set_demod(receiver::RX_DEMOD_AM);
+//        ui->plotter->setDemodRanges(-40000, -200, 200, 40000, true);
+//        uiDockAudio->setFftRange(0,6000);
+//        click_res = 100;
+//        break;
 
-    case DockRxOpt::MODE_NFM:
-        ui->plotter->setDemodRanges(-40000, -1000, 1000, 40000, true);
-        uiDockAudio->setFftRange(0, 5000);
-        rx->set_demod(receiver::RX_DEMOD_NFM);
-        rx->set_fm_maxdev(uiDockRxOpt->currentMaxdev());
-        rx->set_fm_deemph(uiDockRxOpt->currentEmph());
-        click_res = 100;
-        break;
+//    case DockRxOpt::MODE_NFM:
+//        ui->plotter->setDemodRanges(-40000, -1000, 1000, 40000, true);
+//        uiDockAudio->setFftRange(0, 5000);
+//        rx->set_demod(receiver::RX_DEMOD_NFM);
+//        rx->set_fm_maxdev(uiDockRxOpt->currentMaxdev());
+//        rx->set_fm_deemph(uiDockRxOpt->currentEmph());
+//        click_res = 100;
+//        break;
 
-    case DockRxOpt::MODE_WFM_MONO:
-    case DockRxOpt::MODE_WFM_STEREO:
-    case DockRxOpt::MODE_WFM_STEREO_OIRT:
-        /* Broadcast FM */
-        ui->plotter->setDemodRanges(-120e3, -10000, 10000, 120e3, true);
-        uiDockAudio->setFftRange(0,24000);  /** FIXME: get audio rate from rx **/
-        click_res = 1000;
-        if (mode_idx == DockRxOpt::MODE_WFM_MONO)
-            rx->set_demod(receiver::RX_DEMOD_WFM_M);
-        else if (mode_idx == DockRxOpt::MODE_WFM_STEREO_OIRT)
-            rx->set_demod(receiver::RX_DEMOD_WFM_S_OIRT);
-        else
-            rx->set_demod(receiver::RX_DEMOD_WFM_S);
+//    case DockRxOpt::MODE_WFM_MONO:
+//    case DockRxOpt::MODE_WFM_STEREO:
+//    case DockRxOpt::MODE_WFM_STEREO_OIRT:
+//        /* Broadcast FM */
+//        ui->plotter->setDemodRanges(-120e3, -10000, 10000, 120e3, true);
+//        uiDockAudio->setFftRange(0,24000);  /** FIXME: get audio rate from rx **/
+//        click_res = 1000;
+//        if (mode_idx == DockRxOpt::MODE_WFM_MONO)
+//            rx->set_demod(receiver::RX_DEMOD_WFM_M);
+//        else if (mode_idx == DockRxOpt::MODE_WFM_STEREO_OIRT)
+//            rx->set_demod(receiver::RX_DEMOD_WFM_S_OIRT);
+//        else
+//            rx->set_demod(receiver::RX_DEMOD_WFM_S);
 
-        uiDockRDS->setEnabled();
-        if (rds_enabled)
-            setRdsDecoder(true);
-        break;
+//        uiDockRDS->setEnabled();
+//        if (rds_enabled)
+//            setRdsDecoder(true);
+//        break;
 
-    case DockRxOpt::MODE_LSB:
-        /* LSB */
-        rx->set_demod(receiver::RX_DEMOD_SSB);
-        ui->plotter->setDemodRanges(-40000, -100, -5000, 0, false);
-        uiDockAudio->setFftRange(0,3000);
-        click_res = 100;
-        break;
+//    case DockRxOpt::MODE_LSB:
+//        /* LSB */
+//        rx->set_demod(receiver::RX_DEMOD_SSB);
+//        ui->plotter->setDemodRanges(-40000, -100, -5000, 0, false);
+//        uiDockAudio->setFftRange(0,3000);
+//        click_res = 100;
+//        break;
 
-    case DockRxOpt::MODE_USB:
-        /* USB */
-        rx->set_demod(receiver::RX_DEMOD_SSB);
-        ui->plotter->setDemodRanges(0, 5000, 100, 40000, false);
-        uiDockAudio->setFftRange(0,3000);
-        click_res = 100;
-        break;
+//    case DockRxOpt::MODE_USB:
+//        /* USB */
+//        rx->set_demod(receiver::RX_DEMOD_SSB);
+//        ui->plotter->setDemodRanges(0, 5000, 100, 40000, false);
+//        uiDockAudio->setFftRange(0,3000);
+//        click_res = 100;
+//        break;
 
-    case DockRxOpt::MODE_CWL:
-        /* CW-L */
-        rx->set_demod(receiver::RX_DEMOD_SSB);
-        cwofs = -uiDockRxOpt->getCwOffset();
-        ui->plotter->setDemodRanges(-5000, -100, 100, 5000, true);
-        uiDockAudio->setFftRange(0,1500);
-        click_res = 10;
-        break;
+//    case DockRxOpt::MODE_CWL:
+//        /* CW-L */
+//        rx->set_demod(receiver::RX_DEMOD_SSB);
+//        cwofs = -uiDockRxOpt->getCwOffset();
+//        ui->plotter->setDemodRanges(-5000, -100, 100, 5000, true);
+//        uiDockAudio->setFftRange(0,1500);
+//        click_res = 10;
+//        break;
 
-    case DockRxOpt::MODE_CWU:
-        /* CW-U */
-        rx->set_demod(receiver::RX_DEMOD_SSB);
-        cwofs = uiDockRxOpt->getCwOffset();
-        ui->plotter->setDemodRanges(-5000, -100, 100, 5000, true);
-        uiDockAudio->setFftRange(0,1500);
-        click_res = 10;
-        break;
+//    case DockRxOpt::MODE_CWU:
+//        /* CW-U */
+//        rx->set_demod(receiver::RX_DEMOD_SSB);
+//        cwofs = uiDockRxOpt->getCwOffset();
+//        ui->plotter->setDemodRanges(-5000, -100, 100, 5000, true);
+//        uiDockAudio->setFftRange(0,1500);
+//        click_res = 10;
+//        break;
 
-    default:
-        qDebug() << "Unsupported mode selection (can't happen!): " << mode_idx;
-        flo = -5000;
-        fhi = 5000;
-        click_res = 100;
-        break;
-    }
+//    default:
+//        qDebug() << "Unsupported mode selection (can't happen!): " << mode_idx;
+//        flo = -5000;
+//        fhi = 5000;
+//        click_res = 100;
+//        break;
+//    }
 
-    qDebug() << "Filter preset for mode" << mode_idx << "LO:" << flo << "HI:" << fhi;
-    ui->plotter->setHiLowCutFrequencies(flo, fhi);
-    ui->plotter->setClickResolution(click_res);
-    ui->plotter->setFilterClickResolution(click_res);
-    rx->set_filter((double)flo, (double)fhi, d_filter_shape);
-    rx->set_cw_offset(cwofs);
-    rx->set_sql_level(uiDockRxOpt->currentSquelchLevel());
+//    qDebug() << "Filter preset for mode" << mode_idx << "LO:" << flo << "HI:" << fhi;
+//    ui->plotter->setHiLowCutFrequencies(flo, fhi);
+//    ui->plotter->setClickResolution(click_res);
+//    ui->plotter->setFilterClickResolution(click_res);
+//    rx->set_filter((double)flo, (double)fhi, d_filter_shape);
+//    rx->set_cw_offset(cwofs);
+//    rx->set_sql_level(uiDockRxOpt->currentSquelchLevel());
 
-    remote->setMode(mode_idx);
-    remote->setPassband(flo, fhi);
+//    remote->setMode(mode_idx);
+//    remote->setPassband(flo, fhi);
 
-    d_have_audio = (mode_idx != DockRxOpt::MODE_OFF);
+//    d_have_audio = (mode_idx != DockRxOpt::MODE_OFF);
 
-    uiDockRxOpt->setCurrentDemod(mode_idx);
+//    uiDockRxOpt->setCurrentDemod(mode_idx);
 }
 
 
@@ -1248,91 +1249,92 @@ void MainWindow::iqFftTimeout()
 {
     unsigned int    fftsize;
     unsigned int    i;
-    float           pwr;
-    float           pwr_scale;
-    std::complex<float> pt;     /* a single FFT point used in calculations */
+    const size_t NUM_SAMPS = 512;
+    std::vector<int32_t> buff(NUM_SAMPS);
+    std::vector<void *> buffs(1);
+    buffs[0] = buff.data();
 
-    // FIXME: fftsize is a reference
-    rx->get_iq_fft_data(d_fftData, fftsize);
-
-    if (fftsize == 0)
+    int flags(0);
+    long long timeNs(0);
+    int count = 0;
+    while(1)
     {
-        /* nothing to do, wait until next activation. */
-        return;
+        //    rx->device->activateStream(rx->rx_stream);
+            int r = rx->device->readStream(rx->rx_stream, buffs.data(), NUM_SAMPS, flags, timeNs, 1);
+            if (r == SOAPY_SDR_TIMEOUT)
+            {
+                break;
+            }
+            if (size_t(r) != NUM_SAMPS)
+            {
+                std::cerr << "unexpected readStream return r != NUM_SAMPS " << r << std::endl;
+                break;
+            }
+            if (r == SOAPY_SDR_OVERFLOW or (r > 0 and (flags & SOAPY_SDR_END_ABRUPT) != 0))
+            {
+                std::cerr << "OVERFLOW DETECTED!" << r << std::endl;
+            }
+
+            fftsize = 512;
+            for (i = 0; i < fftsize; i++)
+            {
+                auto lol = 10.0 * log10f(float(buff[i]) * pow(2, -43)) - 12;
+                d_realFftData[i] = lol;
+
+                /* FFT averaging */
+                d_iirFftData[i] += d_fftAvg * (d_realFftData[i] - d_iirFftData[i]);
+            }
+//            std::cerr << count << std::endl;
+            ui->plotter->setNewFftData(d_iirFftData, d_realFftData, fftsize);
+            count++;
     }
+    std::cerr << "Updated FFT times: " << count << std::endl;
 
-    // NB: without cast to float the multiplication will overflow at 64k
-    // and pwr_scale will be inf
-    pwr_scale = 1.0 / ((float)fftsize * (float)fftsize);
-
-    /* Normalize, calculate power and shift the FFT */
-    for (i = 0; i < fftsize; i++)
-    {
-
-        /* normalize and shift */
-        if (i < fftsize/2)
-        {
-            pt = d_fftData[fftsize/2+i];
-        }
-        else
-        {
-            pt = d_fftData[i-fftsize/2];
-        }
-
-        /* calculate power in dBFS */
-        pwr = pwr_scale * (pt.imag() * pt.imag() + pt.real() * pt.real());
-        d_realFftData[i] = 10.0 * log10f(pwr + 1.0e-20);
-
-        /* FFT averaging */
-        d_iirFftData[i] += d_fftAvg * (d_realFftData[i] - d_iirFftData[i]);
-    }
-
-    ui->plotter->setNewFftData(d_iirFftData, d_realFftData, fftsize);
 }
 
 /** Audio FFT plot timeout. */
 void MainWindow::audioFftTimeout()
 {
-    unsigned int    fftsize;
-    unsigned int    i;
-    float           pwr;
-    float           pwr_scale;
-    std::complex<float> pt;             /* a single FFT point used in calculations */
+//    unsigned int    fftsize;
+//    unsigned int    i;
+//    float           pwr;
+//    float           pwr_scale;
+//    std::complex<float> pt;             /* a single FFT point used in calculations */
 
-    if (!d_have_audio || !uiDockAudio->isVisible())
-        return;
+//    if (!d_have_audio || !uiDockAudio->isVisible())
+//        return;
 
-    rx->get_audio_fft_data(d_fftData, fftsize);
+//    rx->get_audio_fft_data(d_fftData, fftsize);
 
-    if (fftsize == 0)
-    {
-        /* nothing to do, wait until next activation. */
-        qDebug() << "No audio FFT data.";
-        return;
-    }
+//    if (fftsize == 0)
+//    {
+//        /* nothing to do, wait until next activation. */
+//        qDebug() << "No audio FFT data.";
+//        return;
+//    }
 
-    pwr_scale = 1.0 / (fftsize * fftsize);
+//    pwr_scale = 1.0 / (fftsize * fftsize);
 
-    /** FIXME: move post processing to rx_fft_f **/
-    /* Normalize, calculcate power and shift the FFT */
-    for (i = 0; i < fftsize; i++)
-    {
-        /* normalize and shift */
-        if (i < fftsize/2)
-        {
-            pt = d_fftData[fftsize/2+i];
-        }
-        else
-        {
-            pt = d_fftData[i-fftsize/2];
-        }
+//    /** FIXME: move post processing to rx_fft_f **/
+//    /* Normalize, calculcate power and shift the FFT */
+//    for (i = 0; i < fftsize; i++)
+//    {
+//        /* normalize and shift */
+//        if (i < fftsize/2)
+//        {
+//            pt = d_fftData[fftsize/2+i];
+//        }
+//        else
+//        {
+//            pt = d_fftData[i-fftsize/2];
+//        }
 
-        /* calculate power in dBFS */
-        pwr = pwr_scale * (pt.imag() * pt.imag() + pt.real() * pt.real());
-        d_realFftData[i] = 10.0 * log10f(pwr + 1.0e-20);
-    }
+//        /* calculate power in dBFS */
+//        pwr = pwr_scale * (pt.imag() * pt.imag() + pt.real() * pt.real());
+//        d_realFftData[i] = 10.0 * log10f(pwr + 1.0e-20);
+//    }
 
-    uiDockAudio->setNewFftData(d_realFftData, fftsize);
+//    uiDockAudio->setNewFftData(d_realFftData, fftsize);
 }
 
 /** RDS message display timeout. */
@@ -1607,7 +1609,7 @@ void MainWindow::setIqFftRate(int fps)
 
 void MainWindow::setIqFftWindow(int type)
 {
-    rx->set_iq_fft_window(type);
+//    rx->set_iq_fft_window(type);
 }
 
 /** Waterfall time span has changed. */
@@ -1710,7 +1712,7 @@ void MainWindow::on_actionDSP_triggered(bool checked)
 
         if (uiDockFft->fftRate())
         {
-            iq_fft_timer->start(1000/uiDockFft->fftRate());
+            iq_fft_timer->start(1000/120);
             ui->plotter->setRunningState(true);
         }
         else
@@ -1719,7 +1721,7 @@ void MainWindow::on_actionDSP_triggered(bool checked)
             ui->plotter->setRunningState(false);
         }
 
-        audio_fft_timer->start(40);
+//        audio_fft_timer->start(40);
 
         /* update menu text and button tooltip */
         ui->actionDSP->setToolTip(tr("Stop DSP processing"));
@@ -1889,15 +1891,15 @@ void MainWindow::on_actionIqTool_triggered()
 /* CPlotter::NewDemodFreq() is emitted */
 void MainWindow::on_plotter_newDemodFreq(qint64 freq, qint64 delta)
 {
-    // set RX filter
-    rx->set_filter_offset((double) delta);
+//    // set RX filter
+//    rx->set_filter_offset((double) delta);
 
-    // update RF freq label and channel filter offset
-    uiDockRxOpt->setFilterOffset(delta);
-    ui->freqCtrl->setFrequency(freq);
+//    // update RF freq label and channel filter offset
+//    uiDockRxOpt->setFilterOffset(delta);
+//    ui->freqCtrl->setFrequency(freq);
 
-    if (rx->is_rds_decoder_active())
-        rx->reset_rds_parser();
+//    if (rx->is_rds_decoder_active())
+//        rx->reset_rds_parser();
 }
 
 /* CPlotter::NewfilterFreq() is emitted or bookmark activated */
