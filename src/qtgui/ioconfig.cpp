@@ -29,19 +29,6 @@
 #include <QtGlobal>
 #include <QVariant>
 
-#include <boost/foreach.hpp>
-#include <osmosdr/device.h>
-#include <osmosdr/source.h>
-#include <osmosdr/ranges.h>
-
-#ifdef WITH_PULSEAUDIO
-#include "pulseaudio/pa_device_list.h"
-#elif WITH_PORTAUDIO
-#include "portaudio/device_list.h"
-#elif defined(GQRX_OS_MACX)
-#include "osxaudio/device_list.h"
-#endif
-
 #include "qtgui/ioconfig.h"
 #include "ui_ioconfig.h"
 
@@ -122,58 +109,6 @@ CIoConfig::CIoConfig(QSettings * settings,
     QString outdev = settings->value("output/device", "").toString();
 
      // get list of audio output devices
-#ifdef WITH_PULSEAUDIO
-    pa_device_list devices;
-    outDevList = devices.get_output_devices();
-
-    qDebug() << __FUNCTION__ << ": Available output devices:";
-    for (i = 0; i < outDevList.size(); i++)
-    {
-        qDebug() << "   " << i << ":" << QString(outDevList[i].get_description().c_str());
-        //qDebug() << "     " << QString(outDevList[i].get_name().c_str());
-        ui->outDevCombo->addItem(QString(outDevList[i].get_description().c_str()));
-
-        // note that item #i in devlist will be item #(i+1)
-        // in combo box due to "default"
-        if (outdev == QString(outDevList[i].get_name().c_str()))
-            ui->outDevCombo->setCurrentIndex(i+1);
-    }
-#elif WITH_PORTAUDIO
-    portaudio_device_list   devices;
-
-    outDevList = devices.get_output_devices();
-    for (i = 0; i < outDevList.size(); i++)
-    {
-        ui->outDevCombo->addItem(QString(outDevList[i].get_description().c_str()));
-
-        // note that item #i in devlist will be item #(i+1)
-        // in combo box due to "default"
-        if (outdev == QString(outDevList[i].get_name().c_str()))
-            ui->outDevCombo->setCurrentIndex(i+1);
-    }
-    //ui->outDevCombo->setEditable(true);
-
-#elif defined(GQRX_OS_MACX)
-    osxaudio_device_list devices;
-    outDevList = devices.get_output_devices();
-
-    qDebug() << __FUNCTION__ << ": Available output devices:";
-    for (i = 0; i < outDevList.size(); i++)
-    {
-        qDebug() << "   " << i << ":" << QString(outDevList[i].get_name().c_str());
-        ui->outDevCombo->addItem(QString(outDevList[i].get_name().c_str()));
-
-        // note that item #i in devlist will be item #(i+1)
-        // in combo box due to "default"
-        if (outdev == QString(outDevList[i].get_name().c_str()))
-            ui->outDevCombo->setCurrentIndex(i+1);
-    }
-
-#else
-    ui->outDevCombo->addItem(settings->value("output/device", "Default").toString(),
-                             settings->value("output/device", "Default").toString());
-    ui->outDevCombo->setEditable(true);
-#endif // WITH_PULSEAUDIO
 
     // Signals and slots
     connect(this, SIGNAL(accepted()), this, SLOT(saveConfig()));
@@ -198,63 +133,28 @@ void CIoConfig::getDeviceList(std::map<QString, QVariant> &devList)
 
     // automatic discovery of FCD does not work on Mac
     // so we do it ourselves
-#if defined(GQRX_OS_MACX)
-#ifdef WITH_PORTAUDIO
-    portaudio_device_list       devices;
-    vector<portaudio_device>    inDevList = devices.get_input_devices();
-#else
-    osxaudio_device_list        devices;
-    vector<osxaudio_device>     inDevList = devices.get_input_devices();
-#endif
-    string this_dev;
-    int i;
-    for (i = 0; i < inDevList.size(); i++)
-    {
-        this_dev = inDevList[i].get_name();
-        if (this_dev.find("FUNcube Dongle V1.0") != string::npos)
-        {
-            devstr = "fcd,type=1,device='FUNcube Dongle V1.0'";
-            devList.insert(std::pair<QString, QVariant>(QString("FUNcube Dongle V1.0"), QVariant(devstr)));
-        }
-        else if (this_dev.find("FUNcube Dongle V1_0") != string::npos)      // since OS X 10.11.4
-        {
-            devstr = "fcd,type=1,device='FUNcube Dongle V1_0'";
-            devList.insert(std::pair<QString, QVariant>(QString("FUNcube Dongle V1_0"), QVariant(devstr)));
-        }
-        else if (this_dev.find("FUNcube Dongle V2.0") != string::npos)
-        {
-            devstr = "fcd,type=2,device='FUNcube Dongle V2.0'";
-            devList.insert(std::pair<QString, QVariant>(QString("FUNcube Dongle V2.0"), QVariant(devstr)));
-        }
-        else if (this_dev.find("FUNcube Dongle V2_0") != string::npos)      // since OS X 10.11.4
-        {
-            devstr = "fcd,type=2,device='FUNcube Dongle V2_0'";
-            devList.insert(std::pair<QString, QVariant>(QString("FUNcube Dongle V2_0"), QVariant(devstr)));
-        }
-    }
-#endif
 
     // Get list of input devices discovered by gr-osmosdr and store them in
     // the device list together with the device descriptor strings
-    osmosdr::devices_t devs = osmosdr::device::find();
+//    osmosdr::devices_t devs = osmosdr::device::find();
 
-    qDebug() << __FUNCTION__ << ": Available input devices:";
-    BOOST_FOREACH(osmosdr::device_t &dev, devs)
-    {
-        if (dev.count("label"))
-        {
-            devlabel = QString(dev["label"].c_str());
-            dev.erase("label");
-        }
-        else
-        {
-            devlabel = "Unknown";
-        }
+//    qDebug() << __FUNCTION__ << ": Available input devices:";
+//    BOOST_FOREACH(osmosdr::device_t &dev, devs)
+//    {
+//        if (dev.count("label"))
+//        {
+//            devlabel = QString(dev["label"].c_str());
+//            dev.erase("label");
+//        }
+//        else
+//        {
+//            devlabel = "Unknown";
+//        }
 
-        devstr = QString(dev.to_string().c_str());
-        devList.insert(std::pair<QString, QVariant>(devlabel, devstr));
-        qDebug() << "  " << devlabel;
-    }
+//        devstr = QString(dev.to_string().c_str());
+//        devList.insert(std::pair<QString, QVariant>(devlabel, devstr));
+//        qDebug() << "  " << devlabel;
+//    }
 }
 
 /** Save configuration. */

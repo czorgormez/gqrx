@@ -32,17 +32,8 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QSvgWidget>
-
-#include "qtgui/dockrxopt.h"
-#include "qtgui/dockaudio.h"
 #include "qtgui/dockinputctl.h"
 #include "qtgui/dockfft.h"
-#include "qtgui/dockbookmarks.h"
-#include "qtgui/dockrds.h"
-#include "qtgui/afsk1200win.h"
-#include "qtgui/iq_tool.h"
-
-#include "applications/gqrx/remote_control.h"
 
 // see https://bugreports.qt-project.org/browse/QTBUG-22829
 #ifndef Q_MOC_RUN
@@ -82,7 +73,7 @@ private:
     qint64 d_hw_freq_start;
     qint64 d_hw_freq_stop;
 
-    enum receiver::filter_shape d_filter_shape;
+//    enum receiver::filter_shape d_filter_shape;
     std::complex<float>* d_fftData;
     float          *d_realFftData;
     float          *d_iirFftData;
@@ -92,18 +83,13 @@ private:
     bool d_have_audio;  /*!< Whether we have audio (i.e. not with demod_off. */
 
     /* dock widgets */
-    DockRxOpt      *uiDockRxOpt;
-    DockAudio      *uiDockAudio;
+//    DockRxOpt      *uiDockRxOpt;
     DockInputCtl   *uiDockInputCtl;
     DockFft        *uiDockFft;
-    DockBookmarks  *uiDockBookmarks;
-    DockRDS        *uiDockRDS;
-
-    CIqTool        *iq_tool;
 
 
     /* data decoders */
-    Afsk1200Win    *dec_afsk1200;
+//    Afsk1200Win    *dec_afsk1200;
     bool            dec_rds;
 
     QTimer   *dec_timer;
@@ -113,9 +99,6 @@ private:
     QTimer   *rds_timer;
 
     receiver *rx;
-
-    RemoteControl *remote;
-
     std::map<QString, QVariant> devList;
 
     // dummy widget to enforce linking to QtSvg

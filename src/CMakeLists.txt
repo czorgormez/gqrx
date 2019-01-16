@@ -1,27 +1,10 @@
 #######################################################################################################################
 # Add the source subdirectories
 add_subdirectory(applications)
-add_subdirectory(dsp)
-add_subdirectory(interfaces)
+# add_subdirectory(dsp)
+# add_subdirectory(interfaces)
 add_subdirectory(qtgui)
-add_subdirectory(receivers)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    if(${OSX_AUDIO_BACKEND} MATCHES "Portaudio")
-        add_subdirectory(portaudio)
-    else()
-        add_subdirectory(osxaudio)
-    endif()
-    add_definitions(-DGQRX_OS_MACX)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.9)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    if(${LINUX_AUDIO_BACKEND} MATCHES "Pulseaudio")
-        add_subdirectory(pulseaudio)
-    elseif(${LINUX_AUDIO_BACKEND} MATCHES "Portaudio")
-        add_subdirectory(portaudio)
-    endif()
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-endif()
+# add_subdirectory(receivers)
 
 #######################################################################################################################
 # bring in the global properties
@@ -66,11 +49,6 @@ target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
     Qt5::Svg
     ${Boost_LIBRARIES}
-    ${GNURADIO_ALL_LIBRARIES}
-    ${GNURADIO_OSMOSDR_LIBRARIES}
-    ${PULSEAUDIO_LIBRARY}
-    ${PULSE-SIMPLE}
-    ${PORTAUDIO_LIBRARIES}
 )
 
 #build a win32 app, not a console app

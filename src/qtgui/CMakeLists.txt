@@ -1,45 +1,19 @@
 #######################################################################################################################
 # Add the source files to SRCS_LIST
 add_source_files(SRCS_LIST
-	afsk1200win.cpp
-	afsk1200win.h
-	agc_options.cpp
-	agc_options.h
-	audio_options.cpp
-	audio_options.h
-	bookmarks.cpp
-	bookmarks.h
-	bookmarkstablemodel.cpp
-	bookmarkstablemodel.h
-	bookmarkstaglist.cpp
-	bookmarkstaglist.h
     ctk/ctkPimpl.h
     ctk/ctkRangeSlider.cpp
     ctk/ctkRangeSlider.h
-	demod_options.cpp
-	demod_options.h
-	dockaudio.cpp
-	dockaudio.h
-	dockbookmarks.cpp
-	dockbookmarks.h
 	dockfft.cpp
 	dockfft.h
 	dockinputctl.cpp
 	dockinputctl.h
-	dockrds.cpp
-	dockrds.h
-	dockrxopt.cpp
-	dockrxopt.h
 	freqctrl.cpp
 	freqctrl.h
 	ioconfig.cpp
 	ioconfig.h
-	iq_tool.cpp
-	iq_tool.h
 	meter.cpp
 	meter.h
-	nb_options.cpp
-	nb_options.h
 	plotter.cpp
 	plotter.h
 	qtcolorpicker.cpp
@@ -63,4 +37,3 @@ add_source_files(UI_SRCS_LIST
 	iq_tool.ui
 	nb_options.ui
 )
-

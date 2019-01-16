@@ -7,11 +7,6 @@ add_source_files(SRCS_LIST
 	gqrx/mainwindow.h
 	gqrx/receiver.cpp
 	gqrx/receiver.h
-	gqrx/remote_control_settings.cpp
-	gqrx/remote_control_settings.h
-	gqrx/remote_control.cpp
-	gqrx/remote_control.h
-	gqrx/file_resources.cpp
 )
 
 #######################################################################################################################

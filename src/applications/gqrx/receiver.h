@@ -23,39 +23,9 @@
 #ifndef RECEIVER_H
 #define RECEIVER_H
 
-#include <gnuradio/analog/sig_source_c.h>
-#include <gnuradio/blocks/file_sink.h>
-#include <gnuradio/blocks/multiply_const_ff.h>
-#include <gnuradio/blocks/multiply_cc.h>
-#include <gnuradio/blocks/null_sink.h>
-#include <gnuradio/blocks/wavfile_sink.h>
-#include <gnuradio/blocks/wavfile_source.h>
-#include <gnuradio/top_block.h>
-#include <osmosdr/source.h>
 #include <string>
-
-#include "dsp/correct_iq_cc.h"
-#include "dsp/filter/fir_decim.h"
-#include "dsp/rx_noise_blanker_cc.h"
-#include "dsp/rx_filter.h"
-#include "dsp/rx_meter.h"
-#include "dsp/rx_agc_xx.h"
-#include "dsp/rx_demod_fm.h"
-#include "dsp/rx_demod_am.h"
-#include "dsp/rx_fft.h"
-#include "dsp/sniffer_f.h"
-#include "dsp/resampler_xx.h"
-#include "interfaces/udp_sink_f.h"
-#include "receivers/receiver_base.h"
 #include <SoapySDR/Device.hpp>
 
-#ifdef WITH_PULSEAUDIO
-#include "pulseaudio/pa_sink.h"
-#elif WITH_PORTAUDIO
-#include "portaudio/portaudio_sink.h"
-#else
-#include <gnuradio/audio/sink.h>
-#endif
 
 /**
  * @defgroup DSP Digital signal processing library based on GNU Radio
@@ -247,43 +217,6 @@ private:
     std::string output_devstr; /*!< Current output device string. */
 
     rx_demod    d_demod;       /*!< Current demodulator. */
-
-    gr::top_block_sptr         tb;        /*!< The GNU Radio top block. */
-
-    osmosdr::source::sptr     src;       /*!< Real time I/Q source. */
-    fir_decim_cc_sptr         input_decim;      /*!< Input decimator. */
-    receiver_base_cf_sptr     rx;        /*!< receiver. */
-
-    dc_corr_cc_sptr           dc_corr;   /*!< DC corrector block. */
-    iq_swap_cc_sptr           iq_swap;   /*!< I/Q swapping block. */
-
-    rx_fft_c_sptr             iq_fft;     /*!< Baseband FFT block. */
-    rx_fft_f_sptr             audio_fft;  /*!< Audio FFT block. */
-
-    gr::analog::sig_source_c::sptr      lo;  /*!< oscillator used for tuning. */
-    gr::blocks::multiply_cc::sptr       mixer;
-
-    gr::blocks::multiply_const_ff::sptr audio_gain0; /*!< Audio gain block. */
-    gr::blocks::multiply_const_ff::sptr audio_gain1; /*!< Audio gain block. */
-
-    gr::blocks::file_sink::sptr         iq_sink;     /*!< I/Q file sink. */
-
-    gr::blocks::wavfile_sink::sptr      wav_sink;   /*!< WAV file sink for recording. */
-    gr::blocks::wavfile_source::sptr    wav_src;    /*!< WAV file source for playback. */
-    gr::blocks::null_sink::sptr         audio_null_sink0; /*!< Audio null sink used during playback. */
-    gr::blocks::null_sink::sptr         audio_null_sink1; /*!< Audio null sink used during playback. */
-
-    udp_sink_f_sptr   audio_udp_sink;  /*!< UDP sink to stream audio over the network. */
-    sniffer_f_sptr    sniffer;    /*!< Sample sniffer for data decoders. */
-    resampler_ff_sptr sniffer_rr; /*!< Sniffer resampler. */
-
-#ifdef WITH_PULSEAUDIO
-    pa_sink_sptr              audio_snk;  /*!< Pulse audio sink. */
-#elif WITH_PORTAUDIO
-    portaudio_sink_sptr       audio_snk;  /*!< portaudio sink */
-#else
-    gr::audio::sink::sptr     audio_snk;  /*!< gr audio sink */
-#endif
 
     //! Get a path to a file containing random bytes
     static std::string get_random_file(void);
