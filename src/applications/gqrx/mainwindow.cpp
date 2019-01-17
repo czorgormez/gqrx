@@ -217,8 +217,8 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
     // restored because device probing might change the device configuration
     CIoConfig::getDeviceList(devList);
 
-    // restore last session
-    if (!loadConfig(cfgfile, true, true))
+//    // restore last session
+    if (!loadConfig("default.conf", true, true) and !loadConfig("/default.conf", true, true))
     {
 
       // first time config
@@ -1179,11 +1179,22 @@ void MainWindow::iqFftTimeout()
                 /* FFT averaging */
                 d_iirFftData[i] += d_fftAvg * (d_realFftData[i] - d_iirFftData[i]);
             }
-//            std::cerr << count << std::endl;
             ui->plotter->setNewFftData(d_iirFftData, d_realFftData, fftsize);
             count++;
+            if(count > 128)
+            {
+                while(1)
+                {
+                    int r = rx->device->readStream(rx->rx_stream, buffs.data(), NUM_SAMPS, flags, timeNs, 1);
+                    if (r == SOAPY_SDR_TIMEOUT)
+                    {
+                        std::cerr << "Plotting too slow, throw away some FFT frames! " << std::endl;
+                        return;
+                    }
+                }
+            }
     }
-    std::cerr << "Updated FFT times: " << count << std::endl;
+//    std::cerr << "Updated FFT times: " << count << std::endl;
 
 }
 

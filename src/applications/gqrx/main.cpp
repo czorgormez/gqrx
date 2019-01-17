@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        cfg_file = "/default.conf";
+        cfg_file = "default.conf";
         qDebug() << "No user supplied config file. Using" << cfg_file;
     }
 

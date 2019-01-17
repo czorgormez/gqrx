@@ -591,10 +591,7 @@ void CIoConfig::inputDeviceSelected(int index)
  */
 void CIoConfig::inputDevstrChanged(const QString &text)
 {
-    if (text.isEmpty())
-        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-    else
-        ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 
 /**

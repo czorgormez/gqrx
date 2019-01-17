@@ -43,10 +43,12 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
+    message('LOLZ')
     add_definitions(-Wall)
     add_definitions(-Wextra)
     add_definitions(-Wno-unused-parameter)
     add_definitions(-Wsign-compare)
+    add_definitions(-O3)
 endif()
 
 # Functions & macros.  These must be defined before including subdirectories.
