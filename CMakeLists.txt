@@ -43,7 +43,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
-    message('LOLZ')
     add_definitions(-Wall)
     add_definitions(-Wextra)
     add_definitions(-Wno-unused-parameter)
@@ -84,11 +83,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Finish configuring compiler / linker settings & flags
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
-    ${Boost_INCLUDE_DIRS}
-)
-
-link_directories(
-    ${Boost_LIBRARY_DIRS}
 )
 
 
