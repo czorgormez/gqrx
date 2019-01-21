@@ -310,6 +310,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="../../../resources/icons.qrc">
      <normaloff>:/icons/icons/play.svg</normaloff>:/icons/icons/play.svg</iconset>

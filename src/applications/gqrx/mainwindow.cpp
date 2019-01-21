@@ -83,13 +83,13 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
 
     /* frequency control widget */
     ui->freqCtrl->setup(0, 0, 9999e6, 1, FCTL_UNIT_NONE);
-    ui->freqCtrl->setFrequency(144500000);
+//    ui->freqCtrl->setFrequency(144500000);
 
 //    d_filter_shape = receiver::FILTER_SHAPE_NORMAL;
 
     /* create receiver object */
     rx = new receiver("", "", 1);
-    rx->set_rf_freq(144500000.0f);
+//    rx->set_rf_freq(144500000.0f);
 
     // remote controller
 
@@ -248,6 +248,7 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
     }
 
     qsvg_dummy = new QSvgWidget();
+    on_actionDSP_triggered(true);
 }
 
 MainWindow::~MainWindow()
@@ -1173,13 +1174,10 @@ void MainWindow::iqFftTimeout()
             fftsize = 512;
             for (i = 0; i < fftsize; i++)
             {
-                auto lol = 10.0 * log10f(float(buff[i]) * pow(2, -43)) - 12;
-                d_realFftData[i] = lol;
-
-                /* FFT averaging */
-                d_iirFftData[i] += d_fftAvg * (d_realFftData[i] - d_iirFftData[i]);
+                auto dbs = 10.0 * log10f(float(buff[i]) * pow(2, -43)) - 12;
+                d_realFftData[i] = dbs;
             }
-            ui->plotter->setNewFftData(d_iirFftData, d_realFftData, fftsize);
+            ui->plotter->setNewFftData(d_realFftData, d_realFftData, fftsize);
             count++;
             if(count > 128)
             {
