@@ -244,6 +244,9 @@
     </item>
     <item>
      <widget class="QCheckBox" name="freqCtrlResetButton">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="toolTip">
        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reset subordinate digits in main frequency control widget&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
