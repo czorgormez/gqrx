@@ -1115,8 +1115,7 @@ void MainWindow::setNoiseBlanker(int nbid, bool on, float threshold)
  */
 void MainWindow::setSqlLevel(double level_db)
 {
-    rx->set_sql_level(level_db);
-    ui->sMeter->setSqlLevel(level_db);
+
 }
 
 /**
@@ -1134,10 +1133,7 @@ double MainWindow::setSqlLevelAuto()
 /** Signal strength meter timeout. */
 void MainWindow::meterTimeout()
 {
-    float level;
 
-    level = rx->get_signal_pwr(true);
-    ui->sMeter->setLevel(level);
 }
 
 /** Baseband FFT plot timeout. */
@@ -1253,70 +1249,26 @@ void MainWindow::rdsTimeout()
  */
 void MainWindow::startAudioRec(const QString filename)
 {
-    if (!d_have_audio)
-    {
-        QMessageBox msg_box;
-        msg_box.setIcon(QMessageBox::Critical);
-        msg_box.setText(tr("Recording audio requires a demodulator.\n"
-                           "Currently, demodulation is switched off "
-                           "(Mode->Demod off)."));
-        msg_box.exec();
-    }
-    else if (rx->start_audio_recording(filename.toStdString()))
-    {
-        ui->statusBar->showMessage(tr("Error starting audio recorder"));
 
-        /* reset state of record button */
-    }
-    else
-    {
-        ui->statusBar->showMessage(tr("Recording audio to %1").arg(filename));
-    }
 }
 
 /** Stop audio recorder. */
 void MainWindow::stopAudioRec()
 {
-    if (rx->stop_audio_recording())
-    {
-        /* okay, this one would be weird if it really happened */
-        ui->statusBar->showMessage(tr("Error stopping audio recorder"));
-    }
-    else
-    {
-        ui->statusBar->showMessage(tr("Audio recorder stopped"), 5000);
-    }
+
 }
 
 
 /** Start playback of audio file. */
 void MainWindow::startAudioPlayback(const QString filename)
 {
-    if (rx->start_audio_playback(filename.toStdString()))
-    {
-        ui->statusBar->showMessage(tr("Error trying to play %1").arg(filename));
 
-        /* reset state of record button */
-    }
-    else
-    {
-        ui->statusBar->showMessage(tr("Playing %1").arg(filename));
-    }
 }
 
 /** Stop playback of audio file. */
 void MainWindow::stopAudioPlayback()
 {
-    if (rx->stop_audio_playback())
-    {
-        /* okay, this one would be weird if it really happened */
-        ui->statusBar->showMessage(tr("Error stopping audio playback"));
 
-    }
-    else
-    {
-        ui->statusBar->showMessage(tr("Audio playback stopped"), 5000);
-    }
 }
 
 /** Start streaming audio over UDP. */
@@ -1334,123 +1286,23 @@ void MainWindow::stopAudioStreaming()
 /** Start I/Q recording. */
 void MainWindow::startIqRecording(const QString recdir)
 {
-    qDebug() << __func__;
-    // generate file name using date, time, rf freq in kHz and BW in Hz
-    // gqrx_iq_yyyymmdd_hhmmss_freq_bw_fc.raw
-    qint64 freq = (qint64)(rx->get_rf_freq());
-    qint64 sr = (qint64)(rx->get_input_rate());
-    qint32 dec = (quint32)(rx->get_input_decim());
-    QString lastRec = QDateTime::currentDateTimeUtc().
-            toString("%1/gqrx_yyyyMMdd_hhmmss_%2_%3_fc.'raw'")
-            .arg(recdir).arg(freq).arg(sr/dec);
 
-    // start recorder; fails if recording already in progress
-    if (rx->start_iq_recording(lastRec.toStdString()))
-    {
-        // reset action status
-        ui->statusBar->showMessage(tr("Error starting I/Q recoder"));
-
-        // show an error message to user
-        QMessageBox msg_box;
-        msg_box.setIcon(QMessageBox::Critical);
-        msg_box.setText(tr("There was an error starting the I/Q recorder.\n"
-                           "Check write permissions for the selected location."));
-        msg_box.exec();
-
-    }
-    else
-    {
-        ui->statusBar->showMessage(tr("Recording I/Q data to: %1").arg(lastRec),
-                                   5000);
-    }
 }
 
 /** Stop current I/Q recording. */
 void MainWindow::stopIqRecording()
 {
-    qDebug() << __func__;
 
-    if (rx->stop_iq_recording())
-        ui->statusBar->showMessage(tr("Error stopping I/Q recoder"));
-    else
-        ui->statusBar->showMessage(tr("I/Q data recoding stopped"), 5000);
 }
 
 void MainWindow::startIqPlayback(const QString filename, float samprate)
 {
-    if (ui->actionDSP->isChecked())
-    {
-        // suspend DSP while we reload settings
-        on_actionDSP_triggered(false);
-    }
 
-    storeSession();
-
-    int sri = (int)samprate;
-    QString devstr = QString("file='%1',rate=%2,throttle=true,repeat=false")
-            .arg(filename).arg(sri);
-
-    qDebug() << __func__ << ":" << devstr;
-
-    rx->set_input_device(devstr.toStdString());
-
-    // sample rate
-    double actual_rate = rx->set_input_rate(samprate);
-    qDebug() << "Requested sample rate:" << samprate;
-    qDebug() << "Actual sample rate   :" << QString("%1")
-                .arg(actual_rate, 0, 'f', 6);
-
-    ui->plotter->setSampleRate(actual_rate);
-    ui->plotter->setSpanFreq((quint32)actual_rate);
-
-    // FIXME: would be nice with good/bad status
-    ui->statusBar->showMessage(tr("Playing %1").arg(filename));
-
-    if (ui->actionDSP->isChecked())
-    {
-        // restsart DSP
-        on_actionDSP_triggered(true);
-    }
 }
 
 void MainWindow::stopIqPlayback()
 {
-    if (ui->actionDSP->isChecked())
-    {
-        // suspend DSP while we reload settings
-        on_actionDSP_triggered(false);
-    }
 
-    ui->statusBar->showMessage(tr("I/Q playback stopped"), 5000);
-
-    // restore original input device
-    QString indev = m_settings->value("input/device", "").toString();
-    rx->set_input_device(indev.toStdString());
-
-    // restore sample rate
-    bool conv_ok;
-    int sr = m_settings->value("input/sample_rate", 0).toInt(&conv_ok);
-    if (conv_ok && (sr > 0))
-    {
-        double actual_rate = rx->set_input_rate(sr);
-        qDebug() << "Requested sample rate:" << sr;
-        qDebug() << "Actual sample rate   :" << QString("%1")
-                    .arg(actual_rate, 0, 'f', 6);
-
-        ui->plotter->setSampleRate(actual_rate);
-        ui->plotter->setSpanFreq((quint32)actual_rate);
-        // not needed as long as we are not recording in iq_tool
-        //iq_tool->setSampleRate(sr);
-    }
-
-    // restore frequency, gain, etc...
-    uiDockInputCtl->readSettings(m_settings);
-
-    if (ui->actionDSP->isChecked())
-    {
-        // restsart DSP
-        on_actionDSP_triggered(true);
-    }
 }
 
 
@@ -1812,12 +1664,10 @@ void MainWindow::on_actionFullScreen_triggered(bool checked)
 {
     if (checked)
     {
-        ui->statusBar->hide();
         showFullScreen();
     }
     else
     {
-        ui->statusBar->show();
         showNormal();
     }
 }
