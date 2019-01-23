@@ -1170,7 +1170,7 @@ void MainWindow::iqFftTimeout()
             fftsize = 512;
             for (i = 0; i < fftsize; i++)
             {
-                auto dbs = 10.0 * log10f(float(buff[i]) * pow(2, -43)) - 12;
+                auto dbs = 10.0 * log10f(float(buff[i]) * pow(2, -43)) - 24;
                 d_realFftData[i] = dbs;
             }
             ui->plotter->setNewFftData(d_realFftData, d_realFftData, fftsize);
