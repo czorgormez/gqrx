@@ -146,6 +146,9 @@ CPlotter::CPlotter(QWidget *parent) : QFrame(parent)
             m_ColorTbl[i].setRgb(255, 255*(i-250)/5, 255*(i-250)/5);
     }
 
+    for (int i = 0; i < 256; i++)
+        m_PenTbl[i] = QPen(m_ColorTbl[255 - i]);
+
     m_PeakHoldActive = false;
     m_PeakHoldValid = false;
 
@@ -894,6 +897,162 @@ void CPlotter::paintEvent(QPaintEvent *)
     painter.drawPixmap(0, 0, m_2DPixmap);
     painter.drawPixmap(0, m_Percent2DScreen * m_Size.height() / 100,
                        m_WaterfallPixmap);
+}
+
+void CPlotter::drawer(float new_data[][512], size_t rows)
+{
+    m_fftDataSize = 512;
+    m_Running = true;
+    drawOverlay();
+    drawWaterfall(new_data, rows);
+    drawPeriodogram(new_data, rows); // this fucks up new_data!
+    update();
+}
+
+
+void CPlotter::drawWaterfall(float new_data[][512], size_t rows)
+{
+    int     i, n;
+    int     w;
+    int     h;
+    int     xmin, xmax;
+    int penid=0;
+
+    // get/draw the waterfall
+    w = m_WaterfallPixmap.width();
+    h = m_WaterfallPixmap.height();
+
+    // get scaled FFT data
+    n = qMin(w, MAX_SCREENSIZE);
+
+    // move current data down one line(must do before attaching a QPainter object)
+    m_WaterfallPixmap.scroll(0, rows, 0, 0, w, h);
+
+    QPainter painter1(&m_WaterfallPixmap);
+
+    for (size_t row=0; row < rows; row++)
+    {
+        getScreenIntegerFFTData(255, n, m_WfMaxdB, m_WfMindB,
+                                m_FftCenter - (qint64)m_Span / 2,
+                                m_FftCenter + (qint64)m_Span / 2,
+                                new_data[row], m_fftbuf,
+                                &xmin, &xmax);
+        for (i = xmin; i < xmax; i++)
+        {
+            if (penid != m_fftbuf[i]) // turns out changing pen color is expensive...
+            {
+                penid = m_fftbuf[i];
+                painter1.setPen(m_PenTbl[m_fftbuf[i]]);
+            }
+            painter1.drawPoint(i, (rows-1) - row );
+        }
+    }
+}
+
+void CPlotter::drawPeriodogram(float new_data[][512], size_t rows)
+{
+    int     i, n;
+    int     w;
+    int     h;
+    int     xmin, xmax;
+
+    // downscale new data to one frame by taking max of each column
+    // new_data[0] is the output
+    for (size_t i=0; i < rows; i++)
+        for (size_t j=0; j < 512; j++)
+            if (new_data[i][j] > new_data[0][j])
+                new_data[0][j] = new_data[i][j];
+
+    QPoint LineBuf[MAX_SCREENSIZE];
+
+    // get/draw the 2D spectrum
+    w = m_2DPixmap.width();
+    h = m_2DPixmap.height();
+
+    // first copy into 2Dbitmap the overlay bitmap.
+    m_2DPixmap = m_OverlayPixmap.copy(0,0,w,h);
+
+    QPainter painter2(&m_2DPixmap);
+
+// workaround for "fixed" line drawing since Qt 5
+// see http://stackoverflow.com/questions/16990326
+#if QT_VERSION >= 0x050000
+    painter2.translate(0.5, 0.5);
+#endif
+
+    // get new scaled fft data
+    getScreenIntegerFFTData(h, qMin(w, MAX_SCREENSIZE),
+                            m_PandMaxdB, m_PandMindB,
+                            m_FftCenter - (qint64)m_Span/2,
+                            m_FftCenter + (qint64)m_Span/2,
+                            new_data[0], m_fftbuf,
+                            &xmin, &xmax);
+
+    // draw the pandapter
+    painter2.setPen(m_FftColor);
+    n = xmax - xmin;
+    for (i = 0; i < n; i++)
+    {
+        LineBuf[i].setX(i + xmin);
+        LineBuf[i].setY(m_fftbuf[i + xmin]);
+    }
+
+    painter2.drawPolyline(LineBuf, n);
+
+    // Peak detection
+    if (m_PeakDetection > 0)
+    {
+        m_Peaks.clear();
+
+        float   mean = 0;
+        float   sum_of_sq = 0;
+        for (i = 0; i < n; i++)
+        {
+            mean += m_fftbuf[i + xmin];
+            sum_of_sq += m_fftbuf[i + xmin] * m_fftbuf[i + xmin];
+        }
+        mean /= n;
+        float stdev= sqrt(sum_of_sq / n - mean * mean );
+
+        int lastPeak = -1;
+        for (i = 0; i < n; i++)
+        {
+            //m_PeakDetection times the std over the mean or better than current peak
+            float d = (lastPeak == -1) ? (mean - m_PeakDetection * stdev) :
+                                       m_fftbuf[lastPeak + xmin];
+
+            if (m_fftbuf[i + xmin] < d)
+                lastPeak=i;
+
+            if (lastPeak != -1 &&
+                    (i - lastPeak > PEAK_H_TOLERANCE || i == n-1))
+            {
+                m_Peaks.insert(lastPeak + xmin, m_fftbuf[lastPeak + xmin]);
+                painter2.drawEllipse(lastPeak + xmin - 5,
+                                     m_fftbuf[lastPeak + xmin] - 5, 10, 10);
+                lastPeak = -1;
+            }
+        }
+    }
+
+    // Peak hold
+    if (m_PeakHoldActive)
+    {
+        for (i = 0; i < n; i++)
+        {
+            if(!m_PeakHoldValid || m_fftbuf[i] < m_fftPeakHoldBuf[i])
+                m_fftPeakHoldBuf[i] = m_fftbuf[i];
+
+            LineBuf[i].setX(i + xmin);
+            LineBuf[i].setY(m_fftPeakHoldBuf[i + xmin]);
+        }
+        painter2.setPen(m_PeakHoldColor);
+        painter2.drawPolyline(LineBuf, n);
+
+        m_PeakHoldValid = true;
+    }
+    painter2.end();
+
 }
 
 // Called to update spectrum data for displaying on the screen

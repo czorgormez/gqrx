@@ -120,6 +120,7 @@ public:
     void    clearWaterfall(void);
     bool    saveWaterfall(const QString & filename) const;
 
+    void drawWaterfall(float new_data[][512], int rows);
 signals:
     void newCenterFreq(qint64 f);
     void newDemodFreq(qint64 freq, qint64 delta); /* delta is the offset from the center */
@@ -153,6 +154,9 @@ public slots:
         resizeEvent(NULL);
     }
 
+    void drawer(float new_data[][512], size_t rows);
+    void drawWaterfall(float new_data[][512], size_t rows);
+    void drawPeriodogram(float new_data[][512], size_t rows);
 protected:
     //re-implemented widget event handlers
     void paintEvent(QPaintEvent *event);
@@ -209,6 +213,7 @@ private:
     QPixmap     m_OverlayPixmap;
     QPixmap     m_WaterfallPixmap;
     QColor      m_ColorTbl[256];
+    QPen        m_PenTbl[256];
     QSize       m_Size;
     QString     m_Str;
     QString     m_HDivText[HORZ_DIVS_MAX+1];

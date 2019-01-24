@@ -1139,57 +1139,33 @@ void MainWindow::meterTimeout()
 /** Baseband FFT plot timeout. */
 void MainWindow::iqFftTimeout()
 {
-    unsigned int    fftsize;
-    unsigned int    i;
-    const size_t NUM_SAMPS = 512;
-    std::vector<int32_t> buff(NUM_SAMPS);
-    std::vector<void *> buffs(1);
+    using std::vector;
+    const size_t FRAME_SIZE = 512;
+    const size_t MAX_FRAMES_INTO_PLOTTER = 64;
+    vector<int32_t> buff(FRAME_SIZE);
+    vector<void *> buffs(1);
     buffs[0] = buff.data();
-
     int flags(0);
     long long timeNs(0);
-    int count = 0;
-    while(1)
+
+    // load MAX_FRAMES_INTO_PLOTTER or less frames from Soapy RX stream
+    size_t rows = 0;
+    float matrix[MAX_FRAMES_INTO_PLOTTER][FRAME_SIZE];
+    for(rows=0; rows < MAX_FRAMES_INTO_PLOTTER; rows++)
     {
-        //    rx->device->activateStream(rx->rx_stream);
-            int r = rx->device->readStream(rx->rx_stream, buffs.data(), NUM_SAMPS, flags, timeNs, 1);
-            if (r == SOAPY_SDR_TIMEOUT)
-            {
-                break;
-            }
-            if (size_t(r) != NUM_SAMPS)
-            {
-                std::cerr << "unexpected readStream return r != NUM_SAMPS " << r << std::endl;
-                break;
-            }
-            if (r == SOAPY_SDR_OVERFLOW or (r > 0 and (flags & SOAPY_SDR_END_ABRUPT) != 0))
-            {
-                std::cerr << "OVERFLOW DETECTED!" << r << std::endl;
-            }
+        int r = rx->device->readStream(rx->rx_stream, buffs.data(), FRAME_SIZE, flags, timeNs, 1);
+        if (r == SOAPY_SDR_TIMEOUT or size_t(r) != FRAME_SIZE)
+            break;
 
-            fftsize = 512;
-            for (i = 0; i < fftsize; i++)
-            {
-                auto dbs = 10.0 * log10f(float(buff[i]) * pow(2, -43)) - 24;
-                d_realFftData[i] = dbs;
-            }
-            ui->plotter->setNewFftData(d_realFftData, d_realFftData, fftsize);
-            count++;
-            if(count > 128)
-            {
-                while(1)
-                {
-                    int r = rx->device->readStream(rx->rx_stream, buffs.data(), NUM_SAMPS, flags, timeNs, 1);
-                    if (r == SOAPY_SDR_TIMEOUT)
-                    {
-                        std::cerr << "Plotting too slow, throw away some FFT frames! " << std::endl;
-                        return;
-                    }
-                }
-            }
+        // convert to decibels
+        for (size_t j=0; j < FRAME_SIZE; j++)
+            matrix[rows][j] = 10.0f * log10f(float(buff[j]) * float(pow(2, -43))) - 24;
     }
-//    std::cerr << "Updated FFT times: " << count << std::endl;
-
+    if (rows != 0)
+    {
+        std::cerr << "To plotter " << rows << std::endl;
+        ui->plotter->drawer(matrix, rows);
+    }
 }
 
 /** Audio FFT plot timeout. */
