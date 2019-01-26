@@ -1141,7 +1141,7 @@ void MainWindow::iqFftTimeout()
 {
     using std::vector;
     const size_t FRAME_SIZE = 512;
-    const size_t MAX_FRAMES_INTO_PLOTTER = 64;
+    const size_t MAX_FRAMES_INTO_PLOTTER = 32; // 64 is too slow, 16 too jumpy
     vector<int32_t> buff(FRAME_SIZE);
     vector<void *> buffs(1);
     buffs[0] = buff.data();
@@ -1163,7 +1163,6 @@ void MainWindow::iqFftTimeout()
     }
     if (rows != 0)
     {
-        std::cerr << "To plotter " << rows << std::endl;
         ui->plotter->drawer(matrix, rows);
     }
 }
