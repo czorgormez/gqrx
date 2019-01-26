@@ -83,90 +83,6 @@ receiver::receiver(const std::string input_device,
     std::vector<size_t> channels = {0};
     rx_stream = device->setupStream(SOAPY_SDR_RX, SOAPY_SDR_CS16, channels,
                                          SoapySDR::KwargsFromString("remote:mtu=2120, remote:prot=tcp"));
-
-//    tb = gr::make_top_block("gqrx");
-
-//    if (input_device.empty())
-//    {
-//        src = osmosdr::source::make("file="+get_random_file()+",freq=428e6,rate=96000,repeat=true,throttle=true");
-//    }
-//    else
-//    {
-//        input_devstr = input_device;
-//        src = osmosdr::source::make(input_device);
-//    }
-
-//    // input decimator
-//    if (d_decim >= 2)
-//    {
-//        try
-//        {
-//            input_decim = make_fir_decim_cc(d_decim);
-//        }
-//        catch (std::range_error &e)
-//        {
-//            std::cout << "Error creating input decimator " << d_decim
-//                      << ": " << e.what() << std::endl
-//                      << "Using decimation 1." << std::endl;
-//            d_decim = 1;
-//        }
-
-//        d_quad_rate = d_input_rate / (double)d_decim;
-//    }
-//    else
-//    {
-//        d_quad_rate = d_input_rate;
-//    }
-
-
-//    // create I/Q sink and close it
-//    iq_sink = gr::blocks::file_sink::make(sizeof(gr_complex), get_null_file().c_str(), true);
-//    iq_sink->set_unbuffered(true);
-//    iq_sink->close();
-
-//    rx = make_nbrx(d_quad_rate, d_audio_rate);
-//    lo = gr::analog::sig_source_c::make(d_quad_rate, gr::analog::GR_SIN_WAVE,
-//                                        0.0, 1.0);
-//    mixer = gr::blocks::multiply_cc::make();
-
-//    iq_swap = make_iq_swap_cc(false);
-//    dc_corr = make_dc_corr_cc(d_quad_rate, 1.0);
-//    iq_fft = make_rx_fft_c(8192u, gr::filter::firdes::WIN_HANN);
-
-//    audio_fft = make_rx_fft_f(8192u, gr::filter::firdes::WIN_HANN);
-//    audio_gain0 = gr::blocks::multiply_const_ff::make(0.1);
-//    audio_gain1 = gr::blocks::multiply_const_ff::make(0.1);
-
-//    wav_sink = gr::blocks::wavfile_sink::make(get_null_file().c_str(), 2,
-//                                              (unsigned int) d_audio_rate,
-//                                              16);
-
-//    audio_udp_sink = make_udp_sink_f();
-
-//#ifdef WITH_PULSEAUDIO
-//    audio_snk = make_pa_sink(audio_device, d_audio_rate, "GQRX", "Audio output");
-//#elif WITH_PORTAUDIO
-//    audio_snk = make_portaudio_sink(audio_device, d_audio_rate, "GQRX", "Audio output");
-//#else
-//    audio_snk = gr::audio::sink::make(d_audio_rate, audio_device, true);
-//#endif
-
-//    output_devstr = audio_device;
-
-//    /* wav sink and source is created when rec/play is started */
-//    audio_null_sink0 = gr::blocks::null_sink::make(sizeof(float));
-//    audio_null_sink1 = gr::blocks::null_sink::make(sizeof(float));
-//    sniffer = make_sniffer_f();
-//    /* sniffer_rr is created at each activation. */
-
-//    set_demod(RX_DEMOD_NFM);
-
-//#ifndef QT_NO_DEBUG_OUTPUT
-//    gr::prefs pref;
-//    std::cout << "Using audio backend: "
-//              << pref.get_string("audio", "audio_module", "N/A")
-//              << std::endl;
-//#endif
 }
 
 receiver::~receiver()
@@ -211,103 +127,14 @@ void receiver::stop()
  */
 void receiver::set_input_device(const std::string device)
 {
-//    if (device.empty())
-//        return;
 
-//    if (input_devstr.compare(device) == 0)
-//    {
-//#ifndef QT_NO_DEBUG_OUTPUT
-//        std::cout << "No change in input device:" << std::endl
-//                  << "  old: " << input_devstr << std::endl
-//                  << "  new: " << device << std::endl;
-//#endif
-//        return;
-//    }
-
-//    input_devstr = device;
-
-//    // tb->lock() can hang occasionally
-//    if (d_running)
-//    {
-//        tb->stop();
-//        tb->wait();
-//    }
-
-//    if (d_decim >= 2)
-//    {
-//        tb->disconnect(src, 0, input_decim, 0);
-//        tb->disconnect(input_decim, 0, iq_swap, 0);
-//    }
-//    else
-//    {
-//        tb->disconnect(src, 0, iq_swap, 0);
-//    }
-
-//    src.reset();
-//    src = osmosdr::source::make(device);
-//    if(src->get_sample_rate() != 0)
-//        set_input_rate(src->get_sample_rate());
-
-//    if (d_decim >= 2)
-//    {
-//        tb->connect(src, 0, input_decim, 0);
-//        tb->connect(input_decim, 0, iq_swap, 0);
-//    }
-//    else
-//    {
-//        tb->connect(src, 0, iq_swap, 0);
-//    }
-
-//    if (d_running)
-//        tb->start();
 }
 
 
 /** Select new audio output device. */
 void receiver::set_output_device(const std::string device)
 {
-//    if (output_devstr.compare(device) == 0)
-//    {
-//#ifndef QT_NO_DEBUG_OUTPUT
-//        std::cout << "No change in output device:" << std::endl
-//                  << "  old: " << output_devstr << std::endl
-//                  << "  new: " << device << std::endl;
-//#endif
-//        return;
-//    }
 
-//#ifndef QT_NO_DEBUG_OUTPUT
-//    std::cout << "New audio output device:" << std::endl
-//              << "   old: " << output_devstr << std::endl
-//              << "   new: " << device << std::endl;
-//#endif
-
-//    output_devstr = device;
-
-//    tb->lock();
-
-//    if (d_demod != RX_DEMOD_OFF)
-//    {
-//        tb->disconnect(audio_gain0, 0, audio_snk, 0);
-//        tb->disconnect(audio_gain1, 0, audio_snk, 1);
-//    }
-//    audio_snk.reset();
-
-//#ifdef WITH_PULSEAUDIO
-//    audio_snk = make_pa_sink(device, d_audio_rate, "GQRX", "Audio output");
-//#elif WITH_PORTAUDIO
-//    audio_snk = make_portaudio_sink(device, d_audio_rate, "GQRX", "Audio output");
-//#else
-//    audio_snk = gr::audio::sink::make(d_audio_rate, device, true);
-//#endif
-
-//    if (d_demod != RX_DEMOD_OFF)
-//    {
-//        tb->connect(audio_gain0, 0, audio_snk, 0);
-//        tb->connect(audio_gain1, 0, audio_snk, 1);
-//    }
-
-//    tb->unlock();
 }
 
 /** Get a list of available antenna connectors. */
@@ -335,109 +162,12 @@ void receiver::set_antenna(const std::string &antenna)
  */
 double receiver::set_input_rate(double rate)
 {
-//    double  current_rate;
-//    bool    rate_has_changed;
-
-//    current_rate = src->get_sample_rate();
-//    rate_has_changed = !(rate == current_rate ||
-//            std::abs(rate - current_rate) < std::abs(std::min(rate, current_rate))
-//            * std::numeric_limits<double>::epsilon());
-
-//    tb->lock();
-//    d_input_rate = src->set_sample_rate(rate);
-
-//    if (d_input_rate == 0)
-//    {
-//        // This can be the case when no device is attached and gr-osmosdr
-//        // puts in a null_source with rate 100 ksps or if the rate has not
-//        // changed
-//        if (rate_has_changed)
-//        {
-//            std::cerr << std::endl;
-//            std::cerr << "Failed to set RX input rate to " << rate << std::endl;
-//            std::cerr << "Your device may not be working properly." << std::endl;
-//            std::cerr << std::endl;
-//        }
-//        d_input_rate = rate;
-//    }
-
-//    d_quad_rate = d_input_rate / (double)d_decim;
-//    dc_corr->set_sample_rate(d_quad_rate);
-//    rx->set_quad_rate(d_quad_rate);
-//    lo->set_sampling_freq(d_quad_rate);
-//    tb->unlock();
-
     return d_input_rate;
 }
 
 /** Set input decimation */
 unsigned int receiver::set_input_decim(unsigned int decim)
 {
-//    if (decim == d_decim)
-//        return d_decim;
-
-//    if (d_running)
-//    {
-//        tb->stop();
-//        tb->wait();
-//    }
-
-//    if (d_decim >= 2)
-//    {
-//        tb->disconnect(src, 0, input_decim, 0);
-//        tb->disconnect(input_decim, 0, iq_swap, 0);
-//    }
-//    else
-//    {
-//        tb->disconnect(src, 0, iq_swap, 0);
-//    }
-
-//    input_decim.reset();
-//    d_decim = decim;
-//    if (d_decim >= 2)
-//    {
-//        try
-//        {
-//            input_decim = make_fir_decim_cc(d_decim);
-//        }
-//        catch (std::range_error &e)
-//        {
-//            std::cout << "Error opening creating input decimator " << d_decim
-//                      << ": " << e.what() << std::endl
-//                      << "Using decimation 1." << std::endl;
-//            d_decim = 1;
-//        }
-
-//        d_quad_rate = d_input_rate / (double)d_decim;
-//    }
-//    else
-//    {
-//        d_quad_rate = d_input_rate;
-//    }
-
-//    // update quadrature rate
-//    dc_corr->set_sample_rate(d_quad_rate);
-//    rx->set_quad_rate(d_quad_rate);
-//    lo->set_sampling_freq(d_quad_rate);
-
-//    if (d_decim >= 2)
-//    {
-//        tb->connect(src, 0, input_decim, 0);
-//        tb->connect(input_decim, 0, iq_swap, 0);
-//    }
-//    else
-//    {
-//        tb->connect(src, 0, iq_swap, 0);
-//    }
-
-//#ifdef CUSTOM_AIRSPY_KERNELS
-//    if (input_devstr.find("airspy") != std::string::npos)
-//        src->set_bandwidth(d_quad_rate);
-//#endif
-
-//    if (d_running)
-//        tb->start();
-
     return d_decim;
 }
 
